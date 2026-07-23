@@ -1,0 +1,14 @@
+# Environment
+venv/
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# OS/editor junk
+.DS_Store
+.vscode/
+.idea/
