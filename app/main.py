@@ -23,6 +23,6 @@ def user(user:UserCreate, db:Session=Depends(get_db)):
 
     return new_user
 
-
+ 
 
     
