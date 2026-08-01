@@ -34,6 +34,12 @@ def group(group:GroupCreate, db:Session=Depends(get_db)):
     db.refresh(new_group)
 
     return new_group
+
+@app.get("/users")
+def get_users(db:Session=Depends(get_db)):
+    all_users=db.query(Users).all()
+
+    return all_users
  
 
     
