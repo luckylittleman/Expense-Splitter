@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from .database import Base, engine, get_db
 from .models import Users,Groups
 from sqlalchemy.orm import Session
@@ -41,5 +41,10 @@ def get_users(db:Session=Depends(get_db)):
 
     return all_users
  
-
+@app.get("/users/{user_id}")
+def get_user(user_id:int,db:Session=Depends(get_db)):
+    user=db.query(Users).filter(Users.user_id==user_id).first()
+    if user is None:
+        raise HTTPException(status_code=404,detail="User not found")
+    return user
     
