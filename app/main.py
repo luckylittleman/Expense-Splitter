@@ -47,4 +47,17 @@ def get_user(user_id:int,db:Session=Depends(get_db)):
     if user is None:
         raise HTTPException(status_code=404,detail="User not found")
     return user
+
+@app.get("/groups")
+def get_groups(db:Session=Depends(get_db)):
+    all_groups=db.query(Groups).all()
+
+    return all_groups
+
+@app.get("/groups/{group_id}")
+def get_group(group_id:int,db:Session=Depends(get_db)):
+    group=db.query(Groups).filter(Groups.group_id==group_id).first()
+    if group is None:
+        raise HTTPException(status_code=404,detail="Group not found")
+    return group
     
