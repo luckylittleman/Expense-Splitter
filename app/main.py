@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Depends, HTTPException
 from .database import Base, engine, get_db
-from .models import Users,Groups
+from .models import Users,Groups,UserGroup
 from sqlalchemy.orm import Session
-from .schemas import UserCreate,GroupCreate
+from .schemas import UserCreate,GroupCreate,UserGroupCreate
 
 app=FastAPI()
 Base.metadata.create_all(bind=engine)
@@ -60,4 +60,25 @@ def get_group(group_id:int,db:Session=Depends(get_db)):
     if group is None:
         raise HTTPException(status_code=404,detail="Group not found")
     return group
+
+@app.post("/usergroups")
+def user_group(usergroup:UserGroupCreate, db:Session=Depends(get_db)):
+    user=db.query(Users).filter(Users.user_id==usergroup.user_id).first()
+    if user is None:
+        raise HTTPException(status_code=404,detail="User not found")
+    
+    group=db.query(Groups).filter(Groups.group_id==usergroup.group_id).first()
+    if group is None:
+        raise HTTPException(status_code=404, detail="Group not found")
+
+    new_user_group=UserGroup(group_id=usergroup.group_id, user_id=usergroup.user_id)
+
+    db.add(new_user_group)
+
+    db.commit()
+
+    db.refresh(new_user_group)
+
+    return new_user_group
+
     
