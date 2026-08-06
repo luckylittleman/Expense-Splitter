@@ -5,3 +5,7 @@ class UserCreate(BaseModel):
 
 class GroupCreate(BaseModel):
     group_name:str
+
+class UserGroupCreate(BaseModel):
+    group_id:int
+    user_id:int
