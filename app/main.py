@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Depends, HTTPException
 from .database import Base, engine, get_db
-from .models import Users,Groups,UserGroup
+from .models import Users,Groups,UserGroup,Expenses
 from sqlalchemy.orm import Session
-from .schemas import UserCreate,GroupCreate,UserGroupCreate
+from .schemas import UserCreate,GroupCreate,UserGroupCreate, ExpenseCreate
 
 app=FastAPI()
 Base.metadata.create_all(bind=engine)
@@ -81,4 +81,18 @@ def user_group(usergroup:UserGroupCreate, db:Session=Depends(get_db)):
 
     return new_user_group
 
-    
+@app.post("/expenses")
+def expense(expense:ExpenseCreate, db:Session=Depends(get_db)):
+   group=db.query(Groups).filter(Groups.group_id==expense.group_id).first()
+   if group is None:
+       raise HTTPException(status_code=404,detail="Group not found")
+
+   new_expense=Expenses(expense_name=expense.expense_name, amount=expense.amount, group_id=expense.group_id)
+
+   db.add(new_expense)
+
+   db.commit()
+
+   db.refresh(new_expense)
+
+   return new_expense
