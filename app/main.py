@@ -150,3 +150,20 @@ def delete_expense(expense_id:int, db:Session=Depends(get_db)):
     db.commit()
 
     return{"message":"expsense deleted"}
+
+@app.put("/users/{user_id}")
+def update_user(user_id:int, update_data:UserCreate, db:Session=Depends(get_db)):
+    user=db.query(Users).filter(Users.user_id==user_id).first()
+
+    if user is None:
+        raise HTTPException(status_code=404, detail="user not found")
+
+    
+
+    user.user_name= update_data.user_name
+
+    db.commit()
+
+    db.refresh(user)
+
+    return user
