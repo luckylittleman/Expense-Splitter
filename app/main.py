@@ -124,3 +124,29 @@ def  delete_user(user_id:int, db:Session=Depends(get_db)):
     db.commit()
 
     return{"message":"User deleted"}
+
+@app.delete("/groups/{group_id}")
+def delete_group(group_id:int, db:Session=Depends(get_db)):
+    group=db.query(Groups).filter(Groups.group_id==group_id).first()
+
+    if group is None:
+        raise HTTPException(status_code=404, detail="Group not found")
+
+    db.delete(group)
+
+    db.commit()
+
+    return{"message":"Group deleted"}
+
+@app.delete("/expenses/{expense_id}")
+def delete_expense(expense_id:int, db:Session=Depends(get_db)):
+    expense=db.query(Expenses).filter(Expenses.expense_id==expense_id).first()
+
+    if expense is None:
+        raise HTTPException(status_code=404, detail="Expense not found")
+
+    db.delete(expense)
+
+    db.commit()
+
+    return{"message":"expsense deleted"}
