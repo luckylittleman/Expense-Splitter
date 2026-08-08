@@ -96,3 +96,18 @@ def expense(expense:ExpenseCreate, db:Session=Depends(get_db)):
    db.refresh(new_expense)
 
    return new_expense
+
+@app.get("/expenses")
+def get_expenses(db:Session=Depends(get_db)):
+    all_expenses=db.query(Expenses).all()
+
+    return all_expenses
+
+@app.get("/expenses/{expense_id}")
+def get_expense(expense_id:int ,db:Session=Depends(get_db)):
+    expense=db.query(Expenses).filter(Expenses.expense_id==expense_id).first()
+
+    if expense is None:
+        raise HTTPException(status_code=404,detail="Expense not found")
+
+    return expense
