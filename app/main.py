@@ -167,3 +167,19 @@ def update_user(user_id:int, update_data:UserCreate, db:Session=Depends(get_db))
     db.refresh(user)
 
     return user
+
+@app.put("/groups/{group_id}")
+def update_group(group_id:int, update_group:GroupCreate, db:Session=Depends(get_db)):
+    group=db.query(Groups).filter(Groups.group_id==group_id).first()
+
+    if group is None:
+        raise HTTPException(status_code=404, detail="Group not found")
+
+    group.group_name=update_group.group_name
+
+    db.commit()
+
+    db.refresh(group)
+
+    return group
+
