@@ -183,3 +183,25 @@ def update_group(group_id:int, update_group:GroupCreate, db:Session=Depends(get_
 
     return group
 
+@app.put("/expenses/{expense_id}")
+def update_expense(expense_id:int, update_data:ExpenseCreate, db:Session=Depends(get_db)):
+    group=db.query(Groups).filter(Groups.group_id==update_data.group_id).first()
+
+    if group is None:
+        raise HTTPException(status_code=404, detail="Group not found")
+
+    expense=db.query(Expenses).filter(Expenses.expense_id==expense_id).first()
+
+    if expense is None:
+        raise HTTPException(status_code=404, detail="Expense not found")
+
+    expense.expense_name=update_data.expense_name
+    expense.group_id=update_data.group_id
+    expense.amount=update_data.amount
+
+    db.commit()
+
+    db.refresh(expense)
+
+    return expense
+
