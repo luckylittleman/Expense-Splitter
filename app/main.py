@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from .schemas import UserCreate,GroupCreate,UserGroupCreate, ExpenseCreate
 
 app=FastAPI()
-Base.metadata.create_all(bind=engine)
+
 
 @app.get("/")
 def read_root():
