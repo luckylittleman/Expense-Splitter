@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Depends, HTTPException
 from .database import Base, engine, get_db
-from .models import Users,Groups,UserGroup,Expenses
+from .models import Users,Groups,UserGroup,Expenses, Paid, Debt
 from sqlalchemy.orm import Session
-from .schemas import UserCreate,GroupCreate,UserGroupCreate, ExpenseCreate
+from .schemas import UserCreate,GroupCreate,UserGroupCreate, ExpenseCreate, PaymentEntry
 
 app=FastAPI()
 
@@ -87,13 +87,29 @@ def expense(expense:ExpenseCreate, db:Session=Depends(get_db)):
    if group is None:
        raise HTTPException(status_code=404,detail="Group not found")
 
-   new_expense=Expenses(expense_name=expense.expense_name, amount=expense.amount, group_id=expense.group_id)
+   users=db.query(Users).filter(Users.user_id.in_(expense.participant_ids)).all()
+   if len(users) !=len(expense.participant_ids):
+       raise HTTPException(status_code=404, detail="One or more user not found")
 
+   new_expense = Expenses(expense_name=expense.expense_name, amount=expense.amount, group_id=expense.group_id)
    db.add(new_expense)
+
+   db.refresh(new_expense)
+
+   for payment in expense.payments:
+       new_payment=Paid(user_id=payment.user_id, expense_id=new_expense.expense_id,paid_amount=payment.amount_paid)
+       db.add(new_payment)
+
+   share=expense.amount/len(expense.participant_ids)
+
+   for user_id in expense.participant_ids:
+       new_debt=Debt(user_id=user_id,expense_id=new_expense.expense_id, amount_owed=share)
+       db.add(new_debt)
+
+  
 
    db.commit()
 
-   db.refresh(new_expense)
 
    return new_expense
 
@@ -204,4 +220,5 @@ def update_expense(expense_id:int, update_data:ExpenseCreate, db:Session=Depends
     db.refresh(expense)
 
     return expense
+
 
