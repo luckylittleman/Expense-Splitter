@@ -11,7 +11,15 @@ class UserGroupCreate(BaseModel):
     group_id:int
     user_id:int
 
+class PaymentEntry(BaseModel):
+    user_id:int
+    amount_paid:Decimal
+
+
 class ExpenseCreate(BaseModel):
     group_id:int
     expense_name :str
     amount:Decimal
+    participant_ids:list[int]
+    payments:list[PaymentEntry]
+
