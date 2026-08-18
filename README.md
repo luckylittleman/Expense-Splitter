@@ -19,6 +19,7 @@ It has the following features:
 The API is built around 6 relational tables, designed to cleanly separate who owes what from who paid what, this treats the two independently rather than conflating them.
 
  **Users**— `user_id` ,`user_name`
+ 
  Represents an individual using the app.
 
  **Groups**— `group_id`, `group_name`
