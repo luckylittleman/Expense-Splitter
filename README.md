@@ -2,11 +2,11 @@
 A backend REST API for tracking and splitting shared expenses within groups — think "Splitwise" backend. 
 
 ## Tech Stack
-FastAPI
-PostgreSQL
-SQLAlchemy
-Alembic
-Pydantic
+- FastAPI
+- PostgreSQL
+- SQLAlchemy
+- Alembic
+- Pydantic
 
 ## Features
 It has the following features:
