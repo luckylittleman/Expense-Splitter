@@ -19,22 +19,27 @@ It has the following features:
 The API is built around 6 relational tables, designed to cleanly separate who owes what from who paid what, this treats the two independently rather than conflating them.
 
  **Users**— `user_id` ,`user_name`
- 
+
  Represents an individual using the app.
 
  **Groups**— `group_id`, `group_name`
+
  A collection of users who share expenses together (e.g. roommates, a trip).
 
  **UserGroup** — `user_group_id`, `user_id (FK)`, `group_id (FK)`
+
  A many-to-many join table linking users to groups, since a user can belong to multiple groups and a group has multiple users.
 
  **Expenses** — `expense_id`, `expense_name`, `amount`, `group_id (FK)`, `created_at`
+
  A single expense event tied to a group (e.g. "Dinner — $30").
 
  **Paid** — `paid_id`, `user_id (FK)`, `expense_id (FK)`, `paid_amount`
+
  Records who actually paid money toward an expense, and how much. Not every participant necessarily appears here — only those who contributed a payment.
 
  **Debt** — `debt_id`, `user_id (FK)`, `expense_id (FK)`, `amount_owed`
+ 
  Records each participant's fair share of an expense, regardless of whether they paid anything toward it.
 
  ## Why separate Paid and Debt ?
