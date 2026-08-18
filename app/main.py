@@ -93,7 +93,7 @@ def expense(expense:ExpenseCreate, db:Session=Depends(get_db)):
 
    new_expense = Expenses(expense_name=expense.expense_name, amount=expense.amount, group_id=expense.group_id)
    db.add(new_expense)
-
+   db.commit()
    db.refresh(new_expense)
 
    for payment in expense.payments:
