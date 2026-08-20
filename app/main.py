@@ -221,4 +221,29 @@ def update_expense(expense_id:int, update_data:ExpenseCreate, db:Session=Depends
 
     return expense
 
+@app.get("/groups/{group_id}/balances")
+def make_balances(group_id:int,db:Session=Depends(get_db)):
+    group=db.query(Groups).filter(Groups.group_id==group_id).first()
+
+    if group is None:
+        raise HTTPException(status_code=404, detail="Group not found")
+
+    group_debts=db.query(Debt).join(Expenses, Debt.expense_id==Expenses.expense_id).filter(Expenses.group_id==group_id).all()
+
+    group_paids=db.query(Paid).join(Expenses,Paid.expense_id==Expenses.expense_id ).filter(Expenses.group_id==group_id).all()
+
+    balances={}
+
+    for debt in group_debts:
+        if debt.user_id not in balances:
+            balances[debt.user_id]=0
+        balances[debt.user_id]=balances[debt.user_id]-debt.amount_owed
+
+    for paid in group_paids:
+        if paid.user_id not in balances:
+            balances[paid.user_id]=0
+        balances[paid.user_id]=balances[paid.user_id]+paid.paid_amount
+
+    return balances
+
 
