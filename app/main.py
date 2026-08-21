@@ -246,4 +246,23 @@ def make_balances(group_id:int,db:Session=Depends(get_db)):
 
     return balances
 
+@app.get("/groups/{group_id}/expenses-with-payments")
+def expense_payments(group_id:int, db:Session=Depends(get_db)):
+    group=db.query(Groups).filter(Groups.group_id==group_id).first()
+    if group is None:
+        raise HTTPException(status_code=404, detail="Group not found")
+    group_expenses=db.query(Expenses).filter(Expenses.group_id==group_id).all()
+
+    res=[]
+
+    for group_expense in group_expenses:
+        paid=db.query(Paid).filter(Paid.expense_id==group_expense.expense_id).first()
+        if paid is None:
+            paid_amount=0
+        else:
+            paid_amount=paid.paid_amount
+        res.append({"expense_name":group_expense.expense_name, "paid_amount":paid_amount})
+
+    return res
+
 
