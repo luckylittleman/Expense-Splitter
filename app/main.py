@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from .database import Base, engine, get_db
 from .models import Users,Groups,UserGroup,Expenses, Paid, Debt
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session,joinedload
 from .schemas import UserCreate,GroupCreate,UserGroupCreate, ExpenseCreate, PaymentEntry
 
 app=FastAPI()
@@ -251,17 +251,17 @@ def expense_payments(group_id:int, db:Session=Depends(get_db)):
     group=db.query(Groups).filter(Groups.group_id==group_id).first()
     if group is None:
         raise HTTPException(status_code=404, detail="Group not found")
-    group_expenses=db.query(Expenses).filter(Expenses.group_id==group_id).all()
+    group_expenses=db.query(Expenses).options(joinedload(Expenses.paid_entries)).filter(Expenses.group_id==group_id).all()
 
     res=[]
 
     for group_expense in group_expenses:
-        paid=db.query(Paid).filter(Paid.expense_id==group_expense.expense_id).first()
-        if paid is None:
-            paid_amount=0
-        else:
-            paid_amount=paid.paid_amount
-        res.append({"expense_name":group_expense.expense_name, "paid_amount":paid_amount})
+        payment_list=[]
+        for paid in group_expense.paid_entries:
+            payment_list.append({"user_id":paid.user_id,"amount_paid":paid.paid_amount})
+        
+       
+        res.append({"expense_name":group_expense.expense_name, "payments":payment_list})
 
     return res
 
