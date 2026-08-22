@@ -1,6 +1,6 @@
 from .database import Base
 from sqlalchemy import String,ForeignKey,Numeric
-from sqlalchemy.orm import Mapped,mapped_column
+from sqlalchemy.orm import Mapped,mapped_column, relationship
 from decimal import Decimal
 from datetime import datetime
 from sqlalchemy import DateTime
@@ -32,6 +32,7 @@ class Expenses(Base):
     amount:Mapped[Decimal]=mapped_column(Numeric(10,2))
     group_id:Mapped[int]=mapped_column(ForeignKey("groups.group_id"))
     created_at:Mapped[datetime]=mapped_column(DateTime, default=datetime.utcnow)
+    paid_entries:Mapped[list["Paid"]]=relationship("Paid")
 
 class Debt(Base):
     __tablename__="debt"
