@@ -1,8 +1,9 @@
 from fastapi import FastAPI, Depends, HTTPException
-from .database import Base, engine, get_db
+from .database import Base, engine, get_db, redis_client
 from .models import Users,Groups,UserGroup,Expenses, Paid, Debt
 from sqlalchemy.orm import Session,joinedload
 from .schemas import UserCreate,GroupCreate,UserGroupCreate, ExpenseCreate, PaymentEntry
+import redis, json
 
 app=FastAPI()
 
@@ -228,6 +229,13 @@ def make_balances(group_id:int,db:Session=Depends(get_db)):
     if group is None:
         raise HTTPException(status_code=404, detail="Group not found")
 
+    cache_key=f"balances:{group_id}"
+    cached_result=redis_client.get(cache_key)
+        
+    if cached_result is not None:
+        return json.loads(cached_result)
+        
+
     group_debts=db.query(Debt).join(Expenses, Debt.expense_id==Expenses.expense_id).filter(Expenses.group_id==group_id).all()
 
     group_paids=db.query(Paid).join(Expenses,Paid.expense_id==Expenses.expense_id ).filter(Expenses.group_id==group_id).all()
@@ -244,6 +252,8 @@ def make_balances(group_id:int,db:Session=Depends(get_db)):
             balances[paid.user_id]=0
         balances[paid.user_id]=balances[paid.user_id]+paid.paid_amount
 
+    redis_client.set(cache_key,json.dumps(balances,default=float),ex=60)
+
     return balances
 
 @app.get("/groups/{group_id}/expenses-with-payments")
@@ -255,6 +265,7 @@ def expense_payments(group_id:int, db:Session=Depends(get_db)):
 
     res=[]
 
+    
     for group_expense in group_expenses:
         payment_list=[]
         for paid in group_expense.paid_entries:
@@ -262,6 +273,8 @@ def expense_payments(group_id:int, db:Session=Depends(get_db)):
         
        
         res.append({"expense_name":group_expense.expense_name, "payments":payment_list})
+
+    
 
     return res
 

@@ -13,7 +13,7 @@ redis_client=redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True
 
 DATABASE_URL=os.getenv("DATABASE_URL")
 
-engine=create_engine(DATABASE_URL)
+engine=create_engine(DATABASE_URL, echo=True)
 
 SessionLocal=sessionmaker(bind=engine)
 
