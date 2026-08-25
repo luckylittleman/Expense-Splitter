@@ -4,6 +4,7 @@ from .models import Users,Groups,UserGroup,Expenses, Paid, Debt
 from sqlalchemy.orm import Session,joinedload
 from .schemas import UserCreate,GroupCreate,UserGroupCreate, ExpenseCreate, PaymentEntry
 import redis, json
+from sqlalchemy import text
 
 app=FastAPI()
 
@@ -277,5 +278,23 @@ def expense_payments(group_id:int, db:Session=Depends(get_db)):
     
 
     return res
+
+@app.get("/groups/{group_id}/debts-raw-sql")
+def debt_row(group_id:int, db:Session=Depends(get_db)):
+    group=db.query(Groups).filter(Groups.group_id==group_id).first()
+    if group is None:
+         raise HTTPException(status_code=404, detail="Group not found")
+
+    result=db.execute(text("SELECT debt.user_id, SUM(debt.amount_owed) FROM debt JOIN expenses ON debt.expense_id = expenses.expense_id WHERE expenses.group_id= :group_id GROUP BY debt.user_id"), {"group_id":group_id})
+
+    result=result.fetchall()
+
+    res=[]
+
+    for row in result:
+        res.append({"user_id":row[0], "total_owed":float(row[1])})
+
+    return res
+
 
 
