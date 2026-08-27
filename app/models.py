@@ -10,6 +10,7 @@ class Users(Base):
 
     user_id: Mapped[int]=mapped_column(primary_key=True)
     user_name: Mapped[str]=mapped_column(String(100))
+    password_hash:Mapped[str]=mapped_column(String(255))
 
 class Groups(Base):
     __tablename__="groups"
