@@ -3,6 +3,7 @@ from decimal import Decimal
 
 class UserCreate(BaseModel):
     user_name:str
+    password:str
 
 class GroupCreate(BaseModel):
     group_name:str
@@ -22,4 +23,11 @@ class ExpenseCreate(BaseModel):
     amount:Decimal
     participant_ids:list[int]
     payments:list[PaymentEntry]
+
+class UserResponse(BaseModel):
+    user_id:int
+    user_name:str
+
+    class Config:
+        from_attributes = True
 
