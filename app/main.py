@@ -2,9 +2,10 @@ from fastapi import FastAPI, Depends, HTTPException
 from .database import Base, engine, get_db, redis_client
 from .models import Users,Groups,UserGroup,Expenses, Paid, Debt
 from sqlalchemy.orm import Session,joinedload
-from .schemas import UserCreate,GroupCreate,UserGroupCreate, ExpenseCreate, PaymentEntry
+from .schemas import UserCreate,GroupCreate,UserGroupCreate, ExpenseCreate, PaymentEntry, UserResponse
 import redis, json
 from sqlalchemy import text
+from .security import hash_password
 
 app=FastAPI()
 
@@ -13,9 +14,12 @@ app=FastAPI()
 def read_root():
     return{"message":"Hello"}
 
-@app.post("/users")
+@app.post("/users", response_model=UserResponse)
 def user(user:UserCreate, db:Session=Depends(get_db)):
-    new_user=Users(user_name=user.user_name)
+   
+    new_user=Users(user_name=user.user_name, password_hash=hash_password(user.password))
+
+
 
     db.add(new_user)
 
