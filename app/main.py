@@ -2,10 +2,10 @@ from fastapi import FastAPI, Depends, HTTPException
 from .database import Base, engine, get_db, redis_client
 from .models import Users,Groups,UserGroup,Expenses, Paid, Debt
 from sqlalchemy.orm import Session,joinedload
-from .schemas import UserCreate,GroupCreate,UserGroupCreate, ExpenseCreate, PaymentEntry, UserResponse
+from .schemas import UserCreate,GroupCreate,UserGroupCreate, ExpenseCreate, PaymentEntry, UserResponse, LoginRequest
 import redis, json
 from sqlalchemy import text
-from .security import hash_password
+from .security import hash_password, verify_password, create_access_token
 
 app=FastAPI()
 
@@ -299,6 +299,16 @@ def debt_row(group_id:int, db:Session=Depends(get_db)):
         res.append({"user_id":row[0], "total_owed":float(row[1])})
 
     return res
+
+@app.post("/login")
+def login(login_data:LoginRequest, db:Session=Depends(get_db)):
+    user=db.query(Users).filter(Users.user_name==login_data.user_name).first()
+
+    if user is None or not verify_password(login_data.password,user.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+
+    token = create_access_token(data={"sub":str(user.user_id)})
+    return {"access_token":token, "token_type":"bearer"}
 
 
 
