@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session,joinedload
 from .schemas import UserCreate,GroupCreate,UserGroupCreate, ExpenseCreate, PaymentEntry, UserResponse, LoginRequest
 import redis, json
 from sqlalchemy import text
-from .security import hash_password, verify_password, create_access_token
+from .security import hash_password, verify_password, create_access_token, get_current_user
 
 app=FastAPI()
 
@@ -135,7 +135,7 @@ def get_expense(expense_id:int ,db:Session=Depends(get_db)):
     return expense
 
 @app.delete("/users/{user_id}")
-def  delete_user(user_id:int, db:Session=Depends(get_db)):
+def  delete_user(user_id:int, db:Session=Depends(get_db), current_user: Users=Depends(get_current_user)):
     user=db.query(Users).filter(Users.user_id==user_id).first()
 
     if user is None:
