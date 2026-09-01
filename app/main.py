@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
 from .database import Base, engine, get_db, redis_client
 from .models import Users,Groups,UserGroup,Expenses, Paid, Debt
 from sqlalchemy.orm import Session,joinedload
@@ -6,8 +6,27 @@ from .schemas import UserCreate,GroupCreate,UserGroupCreate, ExpenseCreate, Paym
 import redis, json
 from sqlalchemy import text
 from .security import hash_password, verify_password, create_access_token, get_current_user
+from fastapi.middleware.cors import CORSMiddleware
+import logging
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
 
 app=FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+limiter=Limiter(key_func=get_remote_address)
+app.state.limiter=limiter
 
 
 @app.get("/")
@@ -21,11 +40,14 @@ def user(user:UserCreate, db:Session=Depends(get_db)):
 
 
 
+
     db.add(new_user)
 
     db.commit()
 
     db.refresh(new_user)
+
+    logger.info(f"New User registered:{new_user.user_id}")
 
     return new_user
 
@@ -301,13 +323,18 @@ def debt_row(group_id:int, db:Session=Depends(get_db)):
     return res
 
 @app.post("/login")
-def login(login_data:LoginRequest, db:Session=Depends(get_db)):
+@limiter.limit("5/minute")
+def login(request:Request, login_data:LoginRequest, db:Session=Depends(get_db)):
     user=db.query(Users).filter(Users.user_name==login_data.user_name).first()
 
     if user is None or not verify_password(login_data.password,user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
     token = create_access_token(data={"sub":str(user.user_id)})
+
+    logger.info(f"User {user.user_id} logged in successfully")
+
+
     return {"access_token":token, "token_type":"bearer"}
 
 
